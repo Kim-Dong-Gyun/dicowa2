@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.dicowa.board.dao.ReplyDao">
+  
+  <select id="readReply" resultType = "ReplyDto">
+  	SELECT rno, contents, writer, regdate
+  	FROM prm_reply
+  	WHERE bno=#{bno}
+  </select>
+  
+  <select id="readReplyE" resultType="ReplyDto">
+  	SELECT rno, contents, writer, regdate
+  	From eve_reply
+  	WHERE bno=#{bno}
+  </select>
+  
+  <select id="readReplyN" resultType="ReplyDto">
+  	SELECT rno, contents, writer, regdate
+  	FROM not_reply
+  	WHERE bno=#{bno}
+  </select>
+  
+  <!-- 댓글 작성 -->
+  
+  <insert id="writeReply">
+  	insert into prm_reply(bno, rno, contents, writer, regdate)
+	VALUES(#{bno}, prm_reply_seq.nextval, #{contents}, #{writer}, sysdate)
+  </insert>
+  
+  <insert id="writeReplyN">
+  	insert into not_reply(bno, rno, contents, writer, regdate)
+	VALUES(#{bno}, not_reply_seq.nextval, #{contents}, #{writer}, sysdate)
+  </insert>
+  
+  <insert id="writeReplyE">
+  	insert into eve_reply(bno, rno, contents, writer, regdate)
+	VALUES(#{bno}, eve_reply_seq.nextval, #{contents}, #{writer}, sysdate)
+  </insert>
+  
+  
+  <!-- 댓글 수정 -->
+  <update id="updateReply" parameterType="ReplyDto">
+  	UPDATE prm_reply SET contents = #{contents}
+  	WHERE rno = #{rno}
+  </update>
+  
+  <update id="updateReplyN" parameterType="ReplyDto">
+  	UPDATE not_reply SET contents = #{contents}
+  	WHERE rno = #{rno}
+  </update>
+  
+  <update id="updateReplyE" parameterType="ReplyDto">
+  	UPDATE eve_reply SET contents = #{contents}
+  	WHERE rno = #{rno}
+  </update>
+  
+  <!-- 댓글 삭제 -->
+  <delete id="deleteReply"	parameterType="ReplyDto">
+  	DELETE FROM prm_reply
+  	WHERE rno = #{rno}
+  </delete>
+  
+  <delete id="deleteReplyN"	parameterType="ReplyDto">
+  	DELETE FROM not_reply
+  	WHERE rno = #{rno}
+  </delete>
+  
+  <delete id="deleteReplyE"	parameterType="ReplyDto">
+  	DELETE FROM eve_reply
+  	WHERE rno = #{rno}
+  </delete>
+  
+  <!-- 선택된 댓글 조회 -->
+  <select id="selectReply" resultType="ReplyDto">
+  	SELECT bno, rno, contents, writer, regdate
+  	FROM prm_reply
+  	WHERE rno = #{rno}
+  </select>
+  
+  <select id="selectReplyN" resultType="ReplyDto">
+  	SELECT bno, rno, contents, writer, regdate
+  	FROM not_reply
+  	WHERE rno=#{rno}
+  </select>
+  
+  <select id="selectReplyE" resultType="ReplyDto">
+  	SELECT bno, rno, contents, writer, regdate
+  	FROM eve_reply
+  	WHERE rno=#{rno}
+  </select>
+  
+  </mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="com.dicowa.board.dao.MemberDao">
+
+	<insert id="register">
+		insert into tbl_user(uno, userId, userPwd, userName, userPhone, userEmail, reg_date, userGender)
+		VALUES (2, #{userId}, #{userPwd}, #{userName}, #{userPhone}, #{userEmail}, sysdate , #{userGender})
+	</insert>
+	
+	<select id="login" resultType="MemberDto">
+		SELECT userId, userPwd 
+		  FROM tbl_user
+		 WHERE userId = #{userId}
+		   AND userPwd = #{userPwd}   
+	</select>
+	
+	<update id="memberUpdate">
+		UPDATE tbl_user SET
+		userPwd = #{userPwd},
+		userName = #{userName},
+		userPhone = #{userPhone},
+		userEmail = #{userEmail}
+		WHERE userId = #{userId}
+	</update>
+	
+	<select id="idChk" resultType="int">
+		SELECT count(*) FROM tbl_user
+		WHERE userId = #{userId}
+	</select>
+</mapper>

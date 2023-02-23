@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.dicowa.board.dao.NoticeDao">
+
+	<select id="select"  resultType="BoardDto">
+		SELECT bno, title, contents, writer, regdate, viewcnt, goodcnt, cate
+		FROM noticeboard
+		WHERE bno=#{bno} 
+	</select>
+	
+	<select id="count" resultType="int">
+		select count(*)
+		from noticeboard
+	</select>
+	
+	<insert id="insert" parameterType="BoardDto">
+		INSERT INTO noticeboard(bno, title, contents, writer, regdate, cate)
+		VALUES (noticeboard_seq.nextval, #{title}, #{contents}, #{writer}, sysdate, #{cate})
+	</insert>
+	
+	<!-- 4. 번호에 해당하는 게시글의 내용 변경 -->
+	<update id="update" parameterType="BoardDto">
+		UPDATE noticeboard
+		SET title = #{title}, contents=#{contents}
+		WHERE bno = #{bno} AND writer = #{writer}
+	</update>
+	
+	<!-- 5. 게시글번호와 작성자가 일치할 때 게시글 삭제 -->
+	<delete id="delete" parameterType="BoardDto">
+		DELETE FROM noticeboard
+		WHERE bno = #{bno} AND writer=#{writer}
+	</delete>
+	
+	<!-- 관리자 게시글 삭제 -->
+	<delete id="deleteForAdmin">
+		DELETE FROM noticeboard
+		WHERE bno = #{bno}
+	</delete>
+	
+	<!-- 6. 게시글 전체 삭제 -->
+	<delete id="deleteAll">
+		DELETE FROM noticeboard
+	</delete>
+	
+	<!-- 7. 게시글 목록, 등록일 기준으로 내림차순. 번호를 기준으로 내림차순-->
+	<select id="list" resultType="BoardDto" parameterType="com.dicowa.board.domain.Criteria">
+		SELECT  bno, 
+		        title, 
+		        contents,
+		        writer, 
+		        regdate, viewcnt, goodcnt,cate
+		 FROM ( 
+		        SELECT bno, 
+		               title, 
+		               contents, 
+		               writer, 
+		               regdate, viewcnt, goodcnt, cate, 
+		               ROW_NUMBER() OVER(ORDER BY BNO DESC) AS RNUM
+		         FROM noticeboard
+		         WHERE 1=1
+		         <include refid="search"></include>
+		                       ) notice
+		WHERE RNUM BETWEEN #{rowStart} AND #{rowEnd}
+		ORDER BY bno DESC
+	</select>
+	
+	<select id="listCount" resultType="int">
+		SELECT count(bno)
+			FROM noticeboard
+			WHERE 1=1
+			<include refid="search"></include>
+			AND bno > 0
+	</select>
+	
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">AND title LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'c'.toString">AND contents LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'w'.toString">AND writer LIKE '%' || #{keyword} || '%'</if>
+		</if>
+	</sql>
+	
+	<!-- 8. 조회시 게시글 조회수 1증가 -->
+	<update id="increaseViewCnt" parameterType="int" >
+		UPDATE noticeboard
+		SET viewcnt = viewcnt + 1
+		WHERE bno=#{bno}
+	</update>
+	
+	<!-- 9. 페이징처리 -->
+	<select id="selectPage" parameterType="map" resultType="BoardDto">
+		SELECT * 
+		FROM (SELECT ROWNUM rNum, A.*
+			  FROM (SELECT bno, title, contents, writer, regdate, viewcnt, goodcnt 
+					FROM noticeboard
+					ORDER BY regdate DESC, bno DESC) A
+			  )
+		WHERE rNum between ((NVL(#{page}, 0)-1) * #{pageSize} + 1) and (NVL(#{page}, 0) * #{pageSize})
+		ORDER BY regdate DESC, bno DESC
+	</select>
+	
+	<!-- <sql id="searchCondition">
+		<if test="keyword != null and keyword != ''">
+			<choose>
+				<when test='option=="T"'>
+					and title LIKE '%'||#{keyword}||'%'
+				</when>
+				<when test='option=="W"'>
+					and writer LIKE '%'||#{keyword}||'%'
+				</when>
+				<otherwise>
+					and (title LIKE '%'||#{keyword}||'%' 
+					OR content LIKE '%'||#{keyword}||'%' )
+				</otherwise>
+			</choose>
+		</if>
+	</sql> -->
+	
+	
+	<!-- 10. 검색 결과 출력 -->
+	<!-- <select id="selectSearchPage" parameterType="SearchCondition" resultType="BoardDto">
+		SELECT * 
+		FROM (SELECT ROWNUM rNum, A.*
+			  FROM (SELECT bno, title, content, writer, view_cnt, comments_cnt, reg_date
+					FROM board
+					WHERE 1=1
+						<include refid="searchCondition" />
+					
+					ORDER BY reg_date DESC, bno DESC) A
+			  )
+		WHERE rNum between ((NVL(#{page}, 0)-1) * #{pageSize} + 1) and (NVL(#{page}, 0) * #{pageSize})
+		ORDER BY reg_date DESC, bno DESC
+	</select> -->
+	
+	<!-- 11. 검색 결과의 개수 확인 -->
+	<!-- <select id="searchResultCnt" parameterType="SearchCondition" resultType="int">
+		SELECT count(*)
+		FROM board
+		WHERE 1=1
+			<include refid="searchCondition" />
+	</select> -->
+	
+	<!-- 12. 게시글 댓글 카운트 증가 -->
+	<!-- <update id="updateCommentsCnt" parameterType="map">
+		UPDATE board
+		SET comments_cnt = comments_cnt + #{cnt}
+		WHERE bno = #{bno}
+	</update> -->
+
+</mapper>
